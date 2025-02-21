@@ -1,0 +1,31 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: update repository index 
+      dnf:
+        update_cache: yes
+
+    - name: install apache2 package
+      dnf:
+        name: httpd
+        state: latest
+
+    - name: install php-fpm
+      dnf:
+        name: php-fpm
+        state: latest
+
+    - name: enable httpd
+      ansible.builtin.systemd_service:
+        name: httpd
+        state: started
+        enabled: true
+
+    - name: allow httpd firewall
+      ansible.posix.firewalld:
+        service: http
+        state: enabled
+        permanent: true
+        immediate: true

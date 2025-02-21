@@ -1,0 +1,23 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+    - name: update repository index 
+      dnf:
+        update_cache: yes
+
+    - name: remove apache2 package
+      dnf:
+        name: httpd
+        state: absent
+
+    - name: remove php-fpm
+      dnf:
+        name: php-fpm
+        state: absent
+
+    - name: remove httpd firewall
+      ansible.posix.firewalld:
+        service: http
+        state: disabled
