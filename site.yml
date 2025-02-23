@@ -5,12 +5,14 @@
   pre_tasks:
 
   - name: Instal updates (Ubuntu)
+    tags: always
     apt:
       upgrade: dist 
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
 
   - name: Instal updates (Rocky)
+    tags: always
     dnf:
       update_only: yes
       update_cache: yes
@@ -20,58 +22,65 @@
   become: true
   tasks:
 
-    - name: install apache and php package for Ubuntu
-      package:
-        name: 
-          - apache2
-          - libapache2-mod-php
-        state: latest
-      when: ansible_distribution == "Ubuntu"
+  - name: install apache and php package for Ubuntu
+    tags: apache,apache2,ubuntu
+    apt:
+      name: 
+        - apache2
+        - libapache2-mod-php
+      state: latest
+    when: ansible_distribution == "Ubuntu"
 
-    - name: install apache and php package for Rocky
-      package:
-        name: 
-          - httpd
-          - php-fpm
-        state: latest
-      when: ansible_distribution == "Rocky"
+  - name: install apache and php package for Rocky
+    tags: apache,httpd,rocky
+    dnf:
+      name: 
+        - httpd
+        - php-fpm
+      state: latest
+    when: ansible_distribution == "Rocky"
 
-    - name: enable httpd
-      ansible.builtin.systemd_service:
-        name: httpd
-        state: started
-        enabled: true
-      when: ansible_distribution == "Rocky"
+  - name: enable httpd
+    tags: apache,httpd,rocky
+    ansible.builtin.systemd_service:
+      name: httpd
+      state: started
+      enabled: true
+    when: ansible_distribution == "Rocky"
 
-    - name: allow httpd firewall
-      ansible.posix.firewalld:
-        service: http
-        state: enabled
-        permanent: true
-        immediate: true
-      when: ansible_distribution == "Rocky"
+  - name: allow httpd firewall
+    tags: apache,httpd,rocky
+    ansible.posix.firewalld:
+      service: http
+      state: enabled
+      permanent: true
+      immediate: true
+    when: ansible_distribution == "Rocky"
 
 - hosts: db_servers
   become: true
   tasks:
 
-    - name: install mariadb package (Ubuntu)
-      apt:
-        name: mariadb-server
-        state: latest
-      when: ansible_distribution == "Ubuntu"
+  - name: install mariadb package (Ubuntu)
+    tags: ubuntu,db,mariadb
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"
 
-    - name: install mariadb package (Rocky)
-      dnf:
-        name: mariadb
-        state: latest
-      when: ansible_distribution == "Rocky"
+  - name: install mariadb package (Rocky)
+    tags: rocky,db,mariadb
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "Rocky"
 
 - hosts: file_servers
   become: true
   tasks:
 
   - name: install samba package
+    tags: samba
     package:
       name: samba
       state: latest
