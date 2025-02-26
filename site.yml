@@ -4,60 +4,30 @@
   become: true
   pre_tasks:
 
-  - name: Install updates (Ubuntu)
+  - name: Install repo cache (Ubuntu)
     tags: always
     apt:
-      upgrade: dist 
       update_cache: yes
+    changed_when: false  
     when: ansible_distribution == "Ubuntu"
 
-  - name: Install updates (Rocky)
+  - name: Install repo cache (Rocky)
     tags: always
     dnf:
-      update_only: yes
       update_cache: yes
+    changed_when: false  
     when: ansible_distribution == "Rocky"
 
 - hosts: all
   become: true
   tasks:
 
-    - name: delete sstokes user
-      tags: always
-      user:
-        name: sstokes
-        force: true
-        state: absent
-
-- hosts: all
-  become: true
-  tasks:
-
-    - name: create lydia  user
-      tags: always
-      user:
-        name: lydia
-
     - name: add ssh key for lydia
+    #placeholder for removing or changing the key
       tags: always
       authorized_key:
         user: lydia
         key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOfSVDvC6oi1u6RkzwEV9p2ssY/DGdRhnqJMMum+oN0L ansible"
-
-    - name: add sudoers file for lydia
-      tags: always
-      copy:
-        src: sudoer_lydia
-        dest: /etc/sudoers.d/lydia
-        owner: root
-        group: root
-        mode: 0440
-
-    - name: remove sudoers file for sstokes
-      tags: always
-      ansible.builtin.file:
-        path: /etc/sudoers.d/sstokes
-        state: absent
 
 - hosts: workstations
   become: true
