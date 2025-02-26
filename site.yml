@@ -4,19 +4,60 @@
   become: true
   pre_tasks:
 
-  - name: Instal updates (Ubuntu)
+  - name: Install updates (Ubuntu)
     tags: always
     apt:
       upgrade: dist 
       update_cache: yes
     when: ansible_distribution == "Ubuntu"
 
-  - name: Instal updates (Rocky)
+  - name: Install updates (Rocky)
     tags: always
     dnf:
       update_only: yes
       update_cache: yes
     when: ansible_distribution == "Rocky"
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: delete sstokes user
+      tags: always
+      user:
+        name: sstokes
+        force: true
+        state: absent
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: create lydia  user
+      tags: always
+      user:
+        name: lydia
+
+    - name: add ssh key for lydia
+      tags: always
+      authorized_key:
+        user: lydia
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOfSVDvC6oi1u6RkzwEV9p2ssY/DGdRhnqJMMum+oN0L ansible"
+
+    - name: add sudoers file for lydia
+      tags: always
+      copy:
+        src: sudoer_lydia
+        dest: /etc/sudoers.d/lydia
+        owner: root
+        group: root
+        mode: 0440
+
+    - name: remove sudoers file for sstokes
+      tags: always
+      ansible.builtin.file:
+        path: /etc/sudoers.d/sstokes
+        state: absent
 
 - hosts: workstations
   become: true
@@ -57,7 +98,23 @@
       state: latest
     when: ansible_distribution == "Rocky"
 
-  - name: enable httpd
+  - name: change email address for admin
+    tags: apache,centos,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin sysadmin@redstorm.com
+    when: ansible_distribution == "Rocky"
+    register: httpd
+
+  - name: restart httpd (Rocky)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+  - name: enable and start httpd (Rocky)
     tags: apache,httpd,rocky
     ansible.builtin.systemd_service:
       name: httpd
