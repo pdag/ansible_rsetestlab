@@ -1,20 +1,17 @@
 - name: install apache and php package for Ubuntu
-  tags: apache,apache2,ubuntu
-  apt:
+  tags: apache,httpd,php
+  package:
     name: 
-      - apache2
-      - libapache2-mod-php
+      - "{{ apache_package_name }}"
+      - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "Ubuntu"
 
-- name: install apache and php package for Rocky
-  tags: apache,httpd,rocky
-  dnf:
-    name: 
-      - httpd
-      - php-fpm
-    state: latest
-  when: ansible_distribution == "Rocky"
+- name: enable and start apache service
+  tags: apache,http
+  service:
+    name: "{{ apache_package_name }}"
+    state: started
+    enabled: true
 
 - name: change email address for admin
   tags: apache,centos,httpd
@@ -23,22 +20,7 @@
     regexp: '^ServerAdmin'
     line: ServerAdmin sysadmin@redstorm.com
   when: ansible_distribution == "Rocky"
-  register: httpd
-
-- name: restart httpd (Rocky)
-  tags: apache,centos,httpd
-  service:
-    name: httpd
-    state: restarted
-  when: httpd.changed
-
-- name: enable and start httpd (Rocky)
-  tags: apache,httpd,rocky
-  ansible.builtin.systemd_service:
-    name: httpd
-    state: started
-    enabled: true
-  when: ansible_distribution == "Rocky"
+  notify: restart_apache
 
 - name: allow httpd firewall
   tags: apache,httpd,rocky
