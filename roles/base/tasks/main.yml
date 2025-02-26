@@ -1,0 +1,6 @@
+- name: add ssh key for lydia
+#placeholder for removing or changing the key
+  tags: always
+  authorized_key:
+    user: lydia
+    key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOfSVDvC6oi1u6RkzwEV9p2ssY/DGdRhnqJMMum+oN0L ansible"
